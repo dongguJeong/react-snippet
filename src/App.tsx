@@ -1,30 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import "./App.css";
+import { useDebounce } from "./hook/useDebounce/useDebounce";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const handleClick = () => {
-    setCount((prev) => prev + 1);
-  };
-  useEffect(() => {
-    function addMouseEvent() {
-      console.log(count);
-    }
-
-    window.addEventListener("click", addMouseEvent);
-
-    return () => {
-      console.log("클린업", count);
-      window.removeEventListener("click", addMouseEvent);
-    };
-  }, [count]);
   return (
-    <>
-      <h1>{count}</h1>
-      <button onClick={handleClick}>button</button>
-    </>
+    <div>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="검색어를 입력하세요"
+      />
+      <p>실제 검색어: {debouncedSearchTerm}</p>
+    </div>
   );
 }
 

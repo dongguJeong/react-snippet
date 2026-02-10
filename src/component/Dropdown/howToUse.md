@@ -1,101 +1,54 @@
-# Dropdown
+# Dropdown 컴포넌트 사용법
 
-드롭다운 메뉴 컴포넌트입니다. 버튼 클릭 시 메뉴를 표시하고, 외부 클릭이나 Escape 키로 닫을 수 있습니다.
+검색, 단일/다중 선택, 항목 생성 기능을 지원하는 드롭다운 컴포넌트입니다.
 
-## 사용 방법
+## 기본 사용법
 
-### 기본 사용법
+### 예시 1: 기본 드롭다운
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function UserMenu() {
-  const menuItems = [
-    { label: "프로필", value: "profile" },
-    { label: "설정", value: "settings" },
-    { label: "로그아웃", value: "logout" },
-  ];
+const items: DropdownItem[] = [
+  { label: "프로필", value: "profile" },
+  { label: "설정", value: "settings" },
+  { label: "로그아웃", value: "logout" },
+];
 
+function BasicDropdown() {
   const handleSelect = (value: string) => {
-    console.log("선택:", value);
-    if (value === "logout") {
-      // 로그아웃 처리
-    }
+    console.log("선택된 값:", value);
   };
 
   return (
     <Dropdown
-      trigger={<button>계정</button>}
-      items={menuItems}
-      onSelect={handleSelect}
-    />
-  );
-}
-```
-
-## 예시 1: 아이콘이 있는 드롭다운
-
-```tsx
-import { Dropdown } from "./Dropdown";
-
-function ActionMenu() {
-  const items = [
-    {
-      label: "수정",
-      value: "edit",
-      icon: "✏️",
-    },
-    {
-      label: "복사",
-      value: "copy",
-      icon: "📋",
-    },
-    {
-      label: "삭제",
-      value: "delete",
-      icon: "🗑️",
-    },
-  ];
-
-  const handleAction = (value: string) => {
-    switch (value) {
-      case "edit":
-        // 수정 로직
-        break;
-      case "copy":
-        // 복사 로직
-        break;
-      case "delete":
-        // 삭제 로직
-        break;
-    }
-  };
-
-  return (
-    <Dropdown
-      trigger={<button>작업</button>}
       items={items}
-      onSelect={handleAction}
+      onSelect={handleSelect}
+      placeholder="메뉴 선택"
     />
   );
 }
 ```
 
-## 예시 2: 비활성화된 항목
+### 예시 2: 커스텀 트리거
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function RestrictedMenu() {
-  const items = [
-    { label: "보기", value: "view" },
-    { label: "수정", value: "edit", disabled: true },
-    { label: "삭제", value: "delete", disabled: true },
-  ];
+const items: DropdownItem[] = [
+  { label: "수정", value: "edit", icon: "✏️" },
+  { label: "삭제", value: "delete", icon: "🗑️" },
+  { label: "공유", value: "share", icon: "📤" },
+];
 
+function CustomTriggerDropdown() {
   return (
     <Dropdown
-      trigger={<button>메뉴</button>}
+      trigger={
+        <button className="custom-button">
+          작업 ▼
+        </button>
+      }
       items={items}
       onSelect={(value) => console.log(value)}
     />
@@ -103,214 +56,444 @@ function RestrictedMenu() {
 }
 ```
 
-## 예시 3: 위치 조정
+## 검색 기능
+
+### 예시 3: 검색 가능한 드롭다운
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function PositionedDropdowns() {
-  const items = [
-    { label: "옵션 1", value: "1" },
-    { label: "옵션 2", value: "2" },
-  ];
+const countries: DropdownItem[] = [
+  { label: "대한민국", value: "kr" },
+  { label: "미국", value: "us" },
+  { label: "일본", value: "jp" },
+  { label: "중국", value: "cn" },
+  { label: "영국", value: "uk" },
+  { label: "프랑스", value: "fr" },
+  { label: "독일", value: "de" },
+  { label: "캐나다", value: "ca" },
+];
+
+function SearchableDropdown() {
+  const [selectedCountry, setSelectedCountry] = useState("");
 
   return (
-    <div style={{ display: "flex", gap: "20px" }}>
-      {/* 왼쪽 정렬 */}
+    <div>
       <Dropdown
-        trigger={<button>왼쪽</button>}
-        items={items}
-        onSelect={console.log}
-        position="left"
+        items={countries}
+        searchable={true}
+        searchPlaceholder="국가 검색..."
+        placeholder="국가 선택"
+        value={selectedCountry}
+        onChange={(value) => setSelectedCountry(value as string)}
       />
+      {selectedCountry && (
+        <p>선택된 국가: {countries.find(c => c.value === selectedCountry)?.label}</p>
+      )}
+    </div>
+  );
+}
+```
 
-      {/* 가운데 정렬 */}
+## 단일 선택
+
+### 예시 4: 제어 컴포넌트 (단일 선택)
+
+```tsx
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
+
+const languages: DropdownItem[] = [
+  { label: "JavaScript", value: "js" },
+  { label: "TypeScript", value: "ts" },
+  { label: "Python", value: "py" },
+  { label: "Java", value: "java" },
+  { label: "Go", value: "go" },
+];
+
+function ControlledDropdown() {
+  const [language, setLanguage] = useState("js");
+
+  return (
+    <div>
+      <h3>선호하는 프로그래밍 언어</h3>
       <Dropdown
-        trigger={<button>가운데</button>}
-        items={items}
-        onSelect={console.log}
-        position="center"
+        items={languages}
+        searchable={true}
+        value={language}
+        onChange={(value) => setLanguage(value as string)}
+        placeholder="언어 선택"
       />
+      <p>선택된 언어: {language}</p>
+    </div>
+  );
+}
+```
 
-      {/* 오른쪽 정렬 */}
+## 다중 선택
+
+### 예시 5: 다중 선택 드롭다운
+
+```tsx
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
+
+const skills: DropdownItem[] = [
+  { label: "React", value: "react" },
+  { label: "Vue", value: "vue" },
+  { label: "Angular", value: "angular" },
+  { label: "Node.js", value: "nodejs" },
+  { label: "Express", value: "express" },
+  { label: "MongoDB", value: "mongodb" },
+  { label: "PostgreSQL", value: "postgresql" },
+];
+
+function MultiSelectDropdown() {
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+  return (
+    <div>
+      <h3>보유 기술</h3>
       <Dropdown
-        trigger={<button>오른쪽</button>}
+        items={skills}
+        multiple={true}
+        searchable={true}
+        value={selectedSkills}
+        onChange={(value) => setSelectedSkills(value as string[])}
+        placeholder="기술 선택 (다중 선택 가능)"
+        closeOnSelect={false}
+      />
+      <div>
+        <strong>선택된 기술 ({selectedSkills.length}개):</strong>
+        {selectedSkills.length > 0 ? (
+          <ul>
+            {selectedSkills.map((skill) => (
+              <li key={skill}>
+                {skills.find(s => s.value === skill)?.label}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>선택된 기술이 없습니다.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+### 예시 6: 태그 형태의 다중 선택
+
+```tsx
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
+
+const tags: DropdownItem[] = [
+  { label: "긴급", value: "urgent" },
+  { label: "중요", value: "important" },
+  { label: "버그", value: "bug" },
+  { label: "기능", value: "feature" },
+  { label: "문서", value: "docs" },
+  { label: "테스트", value: "test" },
+];
+
+function TagsDropdown() {
+  const [selectedTags, setSelectedTags] = useState<string[]>(["urgent"]);
+
+  return (
+    <Dropdown
+      items={tags}
+      multiple={true}
+      searchable={true}
+      value={selectedTags}
+      onChange={(value) => setSelectedTags(value as string[])}
+      placeholder="태그 선택"
+      maxHeight={250}
+    />
+  );
+}
+```
+
+## 항목 생성 기능
+
+### 예시 7: 새 항목 생성 가능한 드롭다운
+
+```tsx
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
+
+function CreatableDropdown() {
+  const [items, setItems] = useState<DropdownItem[]>([
+    { label: "Apple", value: "apple" },
+    { label: "Banana", value: "banana" },
+    { label: "Orange", value: "orange" },
+  ]);
+  const [selected, setSelected] = useState("");
+
+  const handleCreateItem = (inputValue: string) => {
+    const newItem: DropdownItem = {
+      label: inputValue,
+      value: inputValue.toLowerCase().replace(/\s+/g, "-"),
+    };
+    setItems([...items, newItem]);
+    setSelected(newItem.value);
+    console.log("새 항목 생성:", newItem);
+  };
+
+  return (
+    <div>
+      <h3>과일 선택 (없으면 추가 가능)</h3>
+      <Dropdown
         items={items}
-        onSelect={console.log}
-        position="right"
+        searchable={true}
+        creatable={true}
+        value={selected}
+        onChange={(value) => setSelected(value as string)}
+        onCreateItem={handleCreateItem}
+        createItemLabel={(input) => `"${input}" 추가하기`}
+        placeholder="과일 선택 또는 추가"
       />
     </div>
   );
 }
 ```
 
-## 예시 4: 선택 후 열린 상태 유지
+### 예시 8: 다중 선택 + 항목 생성
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function MultiSelectDropdown() {
-  const [selected, setSelected] = useState<string[]>([]);
+function MultiCreatableDropdown() {
+  const [items, setItems] = useState<DropdownItem[]>([
+    { label: "프론트엔드", value: "frontend" },
+    { label: "백엔드", value: "backend" },
+    { label: "데브옵스", value: "devops" },
+  ]);
+  const [selected, setSelected] = useState<string[]>(["frontend"]);
 
-  const items = [
-    { label: "옵션 1", value: "1" },
-    { label: "옵션 2", value: "2" },
-    { label: "옵션 3", value: "3" },
-  ];
-
-  const handleSelect = (value: string) => {
-    setSelected((prev) =>
-      prev.includes(value)
-        ? prev.filter((v) => v !== value)
-        : [...prev, value]
-    );
+  const handleCreateItem = (inputValue: string) => {
+    const newItem: DropdownItem = {
+      label: inputValue,
+      value: inputValue.toLowerCase().replace(/\s+/g, "-"),
+    };
+    const newItems = [...items, newItem];
+    setItems(newItems);
+    setSelected([...selected, newItem.value]);
   };
 
   return (
-    <Dropdown
-      trigger={<button>선택: {selected.length}개</button>}
-      items={items}
-      onSelect={handleSelect}
-      closeOnSelect={false}
-    />
+    <div>
+      <h3>관심 분야</h3>
+      <Dropdown
+        items={items}
+        multiple={true}
+        searchable={true}
+        creatable={true}
+        value={selected}
+        onChange={(value) => setSelected(value as string[])}
+        onCreateItem={handleCreateItem}
+        createItemLabel={(input) => `"${input}" 새로 추가`}
+        placeholder="분야 선택 또는 추가"
+        searchPlaceholder="검색 또는 추가..."
+      />
+    </div>
   );
 }
 ```
 
-## 예시 5: 언어 선택기
+## 고급 기능
+
+### 예시 9: 아이콘과 비활성화
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function LanguageSelector() {
-  const [language, setLanguage] = useState("ko");
+const actions: DropdownItem[] = [
+  { label: "저장", value: "save", icon: "💾" },
+  { label: "다운로드", value: "download", icon: "⬇️" },
+  { label: "인쇄", value: "print", icon: "🖨️", disabled: true },
+  { label: "공유", value: "share", icon: "📤" },
+  { label: "삭제", value: "delete", icon: "🗑️" },
+];
 
-  const languages = [
-    { label: "한국어", value: "ko", icon: "🇰🇷" },
-    { label: "English", value: "en", icon: "🇺🇸" },
-    { label: "日本語", value: "ja", icon: "🇯🇵" },
-    { label: "中文", value: "zh", icon: "🇨🇳" },
-  ];
-
-  const currentLanguage = languages.find((l) => l.value === language);
-
+function IconDropdown() {
   return (
     <Dropdown
-      trigger={
-        <button>
-          {currentLanguage?.icon} {currentLanguage?.label}
-        </button>
-      }
-      items={languages}
-      onSelect={setLanguage}
+      items={actions}
+      searchable={true}
+      placeholder="작업 선택"
+      onSelect={(value) => console.log("실행:", value)}
     />
   );
 }
 ```
 
-## 예시 6: 정렬 드롭다운
+### 예시 10: 종합 예시
 
 ```tsx
-import { Dropdown } from "./Dropdown";
+import { useState } from "react";
+import { Dropdown, type DropdownItem } from "./Dropdown/Dropdown";
 
-function SortDropdown() {
-  const [sortBy, setSortBy] = useState("date");
+function ComprehensiveExample() {
+  const [items, setItems] = useState<DropdownItem[]>([
+    { label: "React", value: "react", icon: "⚛️" },
+    { label: "Vue", value: "vue", icon: "🟢" },
+    { label: "Angular", value: "angular", icon: "🔴" },
+    { label: "Svelte", value: "svelte", icon: "🟠" },
+    { label: "Next.js", value: "nextjs", icon: "▲" },
+    { label: "Nuxt", value: "nuxt", icon: "💚" },
+  ]);
+  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>([
+    "react",
+  ]);
 
-  const sortOptions = [
-    { label: "최신순", value: "date" },
-    { label: "인기순", value: "popular" },
-    { label: "이름순", value: "name" },
-    { label: "가격 낮은순", value: "price-asc" },
-    { label: "가격 높은순", value: "price-desc" },
-  ];
+  const handleCreateItem = (inputValue: string) => {
+    const newItem: DropdownItem = {
+      label: inputValue,
+      value: inputValue.toLowerCase().replace(/\s+/g, "-"),
+      icon: "🆕",
+    };
+    setItems([...items, newItem]);
+    setSelectedFrameworks([...selectedFrameworks, newItem.value]);
+  };
 
   return (
-    <Dropdown
-      trigger={
-        <button>
-          정렬: {sortOptions.find((o) => o.value === sortBy)?.label}
-        </button>
-      }
-      items={sortOptions}
-      onSelect={setSortBy}
-    />
+    <div style={{ padding: "20px", maxWidth: "600px" }}>
+      <h2>프레임워크 선택</h2>
+      <p>사용해본 프레임워크를 모두 선택하세요. 목록에 없으면 추가할 수 있습니다.</p>
+
+      <Dropdown
+        items={items}
+        multiple={true}
+        searchable={true}
+        creatable={true}
+        value={selectedFrameworks}
+        onChange={(value) => setSelectedFrameworks(value as string[])}
+        onCreateItem={handleCreateItem}
+        placeholder="프레임워크 선택..."
+        searchPlaceholder="검색 또는 추가..."
+        createItemLabel={(input) => `+ "${input}" 추가`}
+        maxHeight={400}
+      />
+
+      <div style={{ marginTop: "20px" }}>
+        <h3>선택된 프레임워크 ({selectedFrameworks.length}개)</h3>
+        {selectedFrameworks.length > 0 ? (
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {selectedFrameworks.map((fw) => {
+              const item = items.find((i) => i.value === fw);
+              return (
+                <div
+                  key={fw}
+                  style={{
+                    padding: "8px 12px",
+                    background: "#e7f1ff",
+                    borderRadius: "6px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  {item?.icon && <span>{item.icon}</span>}
+                  <span>{item?.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p>선택된 프레임워크가 없습니다.</p>
+        )}
+      </div>
+    </div>
   );
 }
 ```
 
-## 예시 7: 커스텀 트리거
+## Props 설명
+
+### DropdownProps
+
+| Prop                | Type                                      | Default           | 설명                                        |
+| ------------------- | ----------------------------------------- | ----------------- | ------------------------------------------- |
+| `trigger`           | `ReactNode`                               | `undefined`       | 커스텀 트리거 (없으면 기본 트리거 사용)     |
+| `items`             | `DropdownItem[]`                          | required          | 드롭다운 항목 배열                          |
+| `onSelect`          | `(value: string) => void`                 | `undefined`       | 항목 선택 시 콜백                           |
+| `position`          | `"left" \| "right" \| "center"`           | `"left"`          | 드롭다운 메뉴 위치                          |
+| `closeOnSelect`     | `boolean`                                 | `true`            | 선택 시 드롭다운 닫기 (다중 선택 시 false 권장) |
+| `className`         | `string`                                  | `""`              | 추가 CSS 클래스                             |
+| `searchable`        | `boolean`                                 | `false`           | 검색 기능 활성화                            |
+| `searchPlaceholder` | `string`                                  | `"검색..."`       | 검색 입력창 placeholder                     |
+| `multiple`          | `boolean`                                 | `false`           | 다중 선택 모드                              |
+| `value`             | `string \| string[]`                      | `undefined`       | 선택된 값 (제어 컴포넌트)                   |
+| `onChange`          | `(value: string \| string[]) => void`     | `undefined`       | 값 변경 시 콜백                             |
+| `creatable`         | `boolean`                                 | `false`           | 항목 생성 기능 활성화                       |
+| `onCreateItem`      | `(inputValue: string) => void`            | `undefined`       | 새 항목 생성 시 콜백                        |
+| `createItemLabel`   | `(inputValue: string) => string`          | `"${input}" 생성` | 항목 생성 버튼 텍스트 생성 함수             |
+| `placeholder`       | `string`                                  | `"선택하세요"`    | 트리거 placeholder                          |
+| `maxHeight`         | `number`                                  | `300`             | 드롭다운 메뉴 최대 높이 (px)                |
+
+### DropdownItem
+
+| Prop       | Type        | Default     | 설명                     |
+| ---------- | ----------- | ----------- | ------------------------ |
+| `label`    | `string`    | required    | 표시할 텍스트            |
+| `value`    | `string`    | required    | 항목의 고유 값           |
+| `icon`     | `ReactNode` | `undefined` | 항목 앞에 표시할 아이콘  |
+| `disabled` | `boolean`   | `false`     | 비활성화 여부            |
+
+## 키보드 단축키
+
+- **Escape**: 드롭다운 닫기
+- **Enter/Space** (트리거): 드롭다운 열기/닫기
+- **Enter** (검색창): 새 항목 생성 (creatable이 true일 때)
+
+## 스타일 커스터마이징
+
+CSS 클래스를 통해 스타일을 커스터마이징할 수 있습니다.
+
+```css
+/* 커스텀 드롭다운 스타일 */
+.my-dropdown .dropdown-default-trigger {
+  border-radius: 12px;
+  border-color: #007bff;
+}
+
+.my-dropdown .dropdown-item:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.my-dropdown .dropdown-tag {
+  background-color: #28a745;
+  color: white;
+}
+```
 
 ```tsx
-import { Dropdown } from "./Dropdown";
-
-function CustomTrigger() {
-  const items = [
-    { label: "공유", value: "share" },
-    { label: "다운로드", value: "download" },
-    { label: "즐겨찾기", value: "favorite" },
-  ];
-
-  return (
-    <Dropdown
-      trigger={
-        <div style={{
-          padding: "8px 12px",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}>
-          <span>더보기</span>
-          <span style={{ marginLeft: "8px" }}>▼</span>
-        </div>
-      }
-      items={items}
-      onSelect={console.log}
-    />
-  );
-}
+<Dropdown
+  className="my-dropdown"
+  items={items}
+  // ...
+/>
 ```
 
-## Props
+## 주의사항
 
-- `trigger`: `ReactNode` (필수) - 드롭다운을 여는 요소
-- `items`: `DropdownItem[]` (필수) - 메뉴 아이템 배열
-  - `label`: `string` - 표시될 텍스트
-  - `value`: `string` - 값
-  - `icon`: `ReactNode` (선택사항) - 아이콘
-  - `disabled`: `boolean` (선택사항) - 비활성화 여부
-- `onSelect`: `(value: string) => void` (필수) - 선택 핸들러
-- `position`: `"left" | "right" | "center"` (선택사항, 기본값: "left") - 메뉴 위치
-- `closeOnSelect`: `boolean` (선택사항, 기본값: true) - 선택 시 자동으로 닫기
-- `className`: `string` (선택사항) - 추가 CSS 클래스
-
-## 키보드 지원
-
-- `Escape` 키를 누르면 드롭다운이 닫힙니다
-
-## 외부 클릭 감지
-
-드롭다운 외부를 클릭하면 자동으로 닫힙니다.
-
-## 스타일 클래스
-
-- `.dropdown` - 전체 컨테이너
-- `.dropdown-trigger` - 트리거 요소
-- `.dropdown-menu` - 메뉴 컨테이너
-- `.dropdown-item` - 메뉴 아이템
-- `.dropdown-item.disabled` - 비활성화된 아이템
-- `.dropdown-icon` - 아이콘
-- `.dropdown-label` - 레이블
-
-## 다크모드 지원
-
-`.dark` 클래스를 감지하여 자동으로 다크모드 스타일을 적용합니다.
+1. **다중 선택 시**: `closeOnSelect={false}` 설정 권장
+2. **제어 컴포넌트**: `value`와 `onChange`를 함께 사용
+3. **항목 생성**: `creatable={true}` 사용 시 `onCreateItem` 필수
+4. **검색 + 생성**: 두 기능을 함께 사용하면 검색 후 Enter로 항목 생성 가능
+5. **다크 모드**: `.dark` 클래스가 부모에 있으면 자동으로 다크 모드 적용
 
 ## 장점
 
+- 검색 기능으로 많은 항목에서 빠르게 찾기
+- 단일/다중 선택 모드 지원
+- 새로운 항목을 즉시 추가 가능
+- 태그 형태의 시각적 피드백
+- 키보드 단축키 지원
 - 외부 클릭 감지
-- 키보드 지원 (Escape)
-- 위치 조정 가능
-- 아이콘 지원
-- 비활성화 항목 지원
-- 다크모드 지원
-- 커스터마이징 가능
+- 다크 모드 지원
+- 반응형 디자인
